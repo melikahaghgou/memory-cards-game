@@ -18,20 +18,29 @@ pip install pygame
 ```
 ## Screenshots
 
-<p align="center">
-  <img src="assets/A.png" width="480" alt="Board view">
-  <br>
-  <em>Initial board layout</em>
-</p>
+## 📸 Gameplay & Interface
 
 <p align="center">
-  <img src="assets/B.png" width="480" alt="Card flip gameplay">
-  <br>
-  <em>Flipping and matching cards</em>
+  <img src="assets/1.png" alt="Main Menu & Player Input" width="70%" />
+</p>
+<p align="center">
+  <em>Figure 1: Main Menu with Player Name Input & Grid Selection</em>
 </p>
 
+<br/>
+
 <p align="center">
-  <img src="assets/C.png" width="480" alt="Victory screen">
-  <br>
-  <em>Win screen with final stats</em>
+  <img src="assets/2.png" alt="In-Game Play" width="70%" />
+</p>
+<p align="center">
+  <em>Figure 2: Active Gameplay with Timer, Flip Animations & Cards</em>
+</p>
+
+<br/>
+
+<p align="center">
+  <img src="assets/3.png" alt="Hall of Fame & Scoreboard" width="70%" />
+</p>
+<p align="center">
+  <em>Figure 3: Hall of Fame & Leaderboard Records</em>
 </p>
