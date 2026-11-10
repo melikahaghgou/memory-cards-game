@@ -1,24 +1,51 @@
-# Memory Cards Game
+# Neon Memory Cards
 
-A simple card-matching memory game built with Python and Pygame. Flip two cards at a time, find matching pairs, and clear the board in as few moves and as little time as possible.
+Neon Memory Cards is a memory matching puzzle created with Python and Pygame. It shows a bright neon look lets you use your pictures offers several grid sizes and has a leaderboard that is split by size.
+
+---
 
 ## Features
 
-- 4x4 card grid with 8 pairs of glowing icons
-- Card flip and hover animations
-- Move counter, score tracker, and timer
-- Win popup showing your final time and total moves
-- Quick restart button (or press `R` on the keyboard)
+- **Neon Visuals:** A clean cyberpunk style color set and custom card design.
 
-## How to Run
+- **Custom Card Images:** Your pictures are resized for each pair of cards.
 
-1. Make sure you have Python installed, then install Pygame:
+- **Multiple Grid Sizes:**
+
+4 X 4 (16 cards)
+
+6 X 6 (36 cards)
+
+8 X 8 (64 cards)
+
+10 X 10 (100 cards)
+
+- **Size-Tabbed Leaderboard:** Each grid size has its high‑score list.
+
+- **Score Calculation:** Players are ranked by the time they take. The number of moves they make.
+
+- **Persistent Storage:** High scores are saved in a JSON file.
+
+---
+
+## Installation & Running
+
+### Prerequisites
+
+Make sure Python 3.8 or newer is installed on your machine.
+
+### Steps
+
+1. Clone the repository. Download the source code:
+
 ```bash
-pip install pygame
+git clone https://github.com/your-username/neon-memory-cards.git
+
+cd neon-memory-cards
 ```
 ## Screenshots
 
-## 📸 Gameplay & Interface
+##  Gameplay & Interface
 
 <p align="center">
   <img src="assets/1.png" alt="Main Menu" width="70%" />

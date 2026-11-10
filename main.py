@@ -17,6 +17,9 @@ FONT = pygame.font.SysFont("arial", 24)
 SMALL_FONT = pygame.font.SysFont("arial", 19)
 BIG_FONT = pygame.font.SysFont("arial", 48, bold=True)
 CARD_FONT = pygame.font.SysFont("arial", 26, bold=True)
+BTN_FONT = pygame.font.SysFont("arial", 20, bold=True)
+BTN_FONT_LARGE = pygame.font.SysFont("arial", 24, bold=True)
+BTN_FONT_SMALL = pygame.font.SysFont("arial", 16, bold=True)
 
 # پالت رنگی نئونی
 BG = (13, 15, 29)
@@ -56,6 +59,133 @@ SHAPE_COUNT = 14
 RAW_IMAGES = {}
 SCALED_CACHE = {}
 _FILES_CACHE = None
+
+
+# ---------- ابزارهای رنگ ----------
+def lerp_color(a, b, t):
+    t = max(0.0, min(1.0, t))
+    return (
+        int(a[0] + (b[0] - a[0]) * t),
+        int(a[1] + (b[1] - a[1]) * t),
+        int(a[2] + (b[2] - a[2]) * t),
+    )
+
+
+# ---------- پس‌زمینه ----------
+def load_custom_background():
+    """اگر فایل background.png/jpg در پوشه assets یا کنار بازی بود، از آن استفاده می‌شود."""
+    folders = [
+        os.path.join(BASE_DIR, "assets"),
+        BASE_DIR,
+    ]
+    for folder in folders:
+        for name in ("background", "bg"):
+            for ext in IMAGE_EXTS:
+                path = os.path.join(folder, name + ext)
+                if os.path.exists(path):
+                    try:
+                        img = pygame.image.load(path).convert()
+                        iw, ih = img.get_size()
+                        scale = max(WIDTH / iw, HEIGHT / ih)
+                        nw, nh = int(iw * scale) + 1, int(ih * scale) + 1
+                        img = pygame.transform.smoothscale(img, (nw, nh))
+                        surf = pygame.Surface((WIDTH, HEIGHT))
+                        surf.blit(img, ((WIDTH - nw) // 2, (HEIGHT - nh) // 2))
+                        shade = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+                        shade.fill((6, 8, 20, 110))
+                        surf.blit(shade, (0, 0))
+                        return surf
+                    except Exception:
+                        pass
+    return None
+
+
+def build_background():
+    """پس‌زمینه نئونی مخصوص بازی کارت: گرادیان، هاله‌ها، ستاره، کف شبکه‌ای و کارت‌های شناور."""
+    custom = load_custom_background()
+    if custom is not None:
+        return custom
+
+    rng = random.Random(11)
+    surf = pygame.Surface((WIDTH, HEIGHT))
+
+    # گرادیان عمودی
+    top, mid, bottom = (7, 8, 22), (28, 12, 58), (10, 14, 40)
+    for y in range(HEIGHT):
+        t = y / HEIGHT
+        if t < 0.65:
+            c = lerp_color(top, mid, t / 0.65)
+        else:
+            c = lerp_color(mid, bottom, (t - 0.65) / 0.35)
+        pygame.draw.line(surf, c, (0, y), (WIDTH, y))
+
+    # هاله‌های رنگی
+    blobs = [
+        (160, 170, 270, PURPLE, 40),
+        (880, 220, 300, CYAN, 30),
+        (512, 560, 360, (120, 50, 200), 34),
+    ]
+    for bx, by, br, bcol, amax in blobs:
+        blob = pygame.Surface((br * 2, br * 2), pygame.SRCALPHA)
+        steps = 16
+        for i in range(steps, 0, -1):
+            rad = int(br * i / steps)
+            alpha = int(amax * (1 - i / (steps + 1)))
+            pygame.draw.circle(blob, (*bcol, alpha), (br, br), rad)
+        surf.blit(blob, (bx - br, by - br))
+
+    # ستاره‌ها
+    stars = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    for _ in range(140):
+        x = rng.randrange(WIDTH)
+        y = rng.randrange(0, 520)
+        a = rng.randrange(60, 210)
+        r = 2 if rng.random() < 0.12 else 1
+        pygame.draw.circle(stars, (220, 230, 255, a), (x, y), r)
+    surf.blit(stars, (0, 0))
+
+    # کف شبکه‌ای پرسپکتیو
+    horizon = 500
+    grid = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    for i in range(1, 15):
+        t = i / 14
+        y = int(horizon + (HEIGHT - horizon) * t ** 2)
+        pygame.draw.line(grid, (*CYAN, int(25 + 90 * t)), (0, y), (WIDTH, y), 1)
+    for k in range(-16, 17):
+        x_far = WIDTH / 2 + k * 9
+        x_near = WIDTH / 2 + k * 115
+        pygame.draw.line(grid, (*PURPLE, 95), (x_far, horizon), (x_near, HEIGHT), 1)
+    pygame.draw.line(grid, (*CYAN, 150), (0, horizon), (WIDTH, horizon), 2)
+    surf.blit(grid, (0, 0))
+
+    # کارت‌های محو شناور
+    floating = [
+        (75, 120, -18, CYAN), (950, 95, 16, PURPLE), (45, 430, 10, PINK),
+        (980, 440, -12, GOLD), (140, 650, 22, PURPLE), (890, 655, -20, CYAN),
+        (310, 55, 8, GREEN), (760, 40, -10, PINK), (520, 735, 14, GOLD),
+    ]
+    for fx, fy, ang, fcol in floating:
+        card = pygame.Surface((70, 98), pygame.SRCALPHA)
+        pygame.draw.rect(card, (*PANEL, 150), card.get_rect(), border_radius=10)
+        pygame.draw.rect(card, (*fcol, 200), card.get_rect(), width=2, border_radius=10)
+        q = CARD_FONT.render("?", True, fcol)
+        card.blit(q, q.get_rect(center=(35, 49)))
+        card = pygame.transform.rotate(card, ang)
+        card.set_alpha(110)
+        surf.blit(card, card.get_rect(center=(fx, fy)))
+
+    return surf.convert()
+
+
+BACKGROUND = build_background()
+DIM_OVERLAY = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+DIM_OVERLAY.fill((6, 8, 20, 120))
+
+
+def draw_background(dim=False):
+    SCREEN.blit(BACKGROUND, (0, 0))
+    if dim:
+        SCREEN.blit(DIM_OVERLAY, (0, 0))
 
 
 # ---------- سیستم بارگذاری و تولید آیکون‌ها ----------
@@ -329,20 +459,162 @@ def text(message, font, color, center=None, topleft=None):
     SCREEN.blit(surface, rect)
 
 
-def button(label, rect, mouse_pos, active=False):
-    hovered = rect.collidepoint(mouse_pos)
-    if active:
-        fill = CYAN
-        label_color = BG
-        border = CYAN
-    else:
-        fill = PANEL_HOVER if hovered else PANEL
-        label_color = WHITE
-        border = CYAN if hovered else PURPLE
+# ---------- دکمه‌های گرافیکی ----------
+# هر استایل: (رنگ بالای دکمه، رنگ پایین دکمه، رنگ حاشیه/درخشش)
+BUTTON_STYLES = {
+    "cyan":   ((36, 112, 165), (14, 46, 94), CYAN),
+    "purple": ((112, 58, 172), (50, 26, 106), PURPLE),
+    "gold":   ((176, 124, 30), (98, 62, 14), GOLD),
+    "red":    ((176, 54, 72), (92, 22, 46), RED),
+    "green":  ((30, 134, 102), (12, 66, 60), GREEN),
+}
 
-    pygame.draw.rect(SCREEN, fill, rect, border_radius=12)
-    pygame.draw.rect(SCREEN, border, rect, width=2, border_radius=12)
-    text(label, FONT, label_color, center=rect.center)
+BTN_PAD = 14          # فضای اطراف دکمه برای درخشش
+BTN_CACHE = {}
+
+
+def draw_button_icon(s, kind, cx, cy, size, col, dark):
+    """رسم آیکون کوچک داخل دکمه."""
+    r = size // 2
+
+    if kind == "play":
+        pts = [(cx - r * 0.5, cy - r), (cx - r * 0.5, cy + r), (cx + r, cy)]
+        pygame.draw.polygon(s, col, pts)
+
+    elif kind == "grid":
+        step = size / 3.0
+        for i in range(3):
+            for j in range(3):
+                px = cx - step + i * step
+                py = cy - step + j * step
+                pygame.draw.circle(s, col, (int(px), int(py)), max(2, size // 8))
+
+    elif kind == "trophy":
+        cup = [(cx - r * 0.7, cy - r), (cx + r * 0.7, cy - r),
+               (cx + r * 0.45, cy + r * 0.25), (cx - r * 0.45, cy + r * 0.25)]
+        pygame.draw.polygon(s, col, cup)
+        pygame.draw.circle(s, col, (int(cx - r * 0.85), int(cy - r * 0.45)), max(3, int(r * 0.4)), 2)
+        pygame.draw.circle(s, col, (int(cx + r * 0.85), int(cy - r * 0.45)), max(3, int(r * 0.4)), 2)
+        pygame.draw.rect(s, col, (cx - 2, int(cy + r * 0.25), 4, int(r * 0.45)))
+        pygame.draw.rect(s, col, (int(cx - r * 0.55), int(cy + r * 0.7), int(r * 1.1), 3),
+                         border_radius=1)
+
+    elif kind == "back":
+        pts = [(cx - r, cy), (cx - r * 0.05, cy - r * 0.85), (cx - r * 0.05, cy - r * 0.35),
+               (cx + r, cy - r * 0.35), (cx + r, cy + r * 0.35),
+               (cx - r * 0.05, cy + r * 0.35), (cx - r * 0.05, cy + r * 0.85)]
+        pygame.draw.polygon(s, col, pts)
+
+    elif kind == "home":
+        pygame.draw.polygon(s, col, [(cx - r, cy), (cx, cy - r), (cx + r, cy)])
+        pygame.draw.rect(s, col, (int(cx - r * 0.7), cy, int(r * 1.4), int(r * 0.95)))
+        pygame.draw.rect(s, dark, (int(cx - r * 0.2), int(cy + r * 0.3), int(r * 0.4), int(r * 0.65)))
+
+    elif kind == "retry":
+        rad = int(r * 0.85)
+        rect = pygame.Rect(cx - rad, cy - rad, rad * 2, rad * 2)
+        pygame.draw.arc(s, col, rect, 1.1, 5.9, 3)
+        ex = cx + rad * math.cos(1.1)
+        ey = cy - rad * math.sin(1.1)
+        tip = [(ex - 5, ey - 1), (ex + 6, ey - 1), (ex + 2, ey + 8)]
+        pygame.draw.polygon(s, col, tip)
+
+
+def build_button_surface(label, w, h, style, icon, hovered, pressed, active):
+    top_c, bot_c, edge = BUTTON_STYLES[style]
+
+    if active:
+        top_c = lerp_color(edge, WHITE, 0.2)
+        bot_c = lerp_color(edge, (0, 0, 0), 0.35)
+        text_col = BG
+    else:
+        text_col = WHITE
+        if hovered:
+            top_c = lerp_color(top_c, WHITE, 0.18)
+            bot_c = lerp_color(bot_c, WHITE, 0.12)
+    if pressed:
+        top_c = lerp_color(top_c, (0, 0, 0), 0.25)
+        bot_c = lerp_color(bot_c, (0, 0, 0), 0.25)
+
+    radius = 14
+    pad = BTN_PAD
+    surf = pygame.Surface((w + pad * 2, h + pad * 2), pygame.SRCALPHA)
+    base = pygame.Rect(pad, pad, w, h)
+
+    # درخشش بیرونی
+    glow_max = 95 if (hovered or active) else 50
+    layers = 7
+    for i in range(layers, 0, -1):
+        alpha = int(glow_max * (1 - i / (layers + 1)))
+        pygame.draw.rect(surf, (*edge, alpha), base.inflate(i * 2, i * 2),
+                         border_radius=radius + i)
+
+    # بدنه گرادیان
+    body = pygame.Surface((w, h), pygame.SRCALPHA)
+    for y in range(h):
+        pygame.draw.line(body, lerp_color(top_c, bot_c, y / max(1, h - 1)), (0, y), (w, y))
+    mask = pygame.Surface((w, h), pygame.SRCALPHA)
+    pygame.draw.rect(mask, (255, 255, 255, 255), mask.get_rect(), border_radius=radius)
+    body.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+    surf.blit(body, (pad, pad))
+
+    # براقی نیمه بالا
+    gloss = pygame.Surface((w - 10, max(4, h // 2 - 3)), pygame.SRCALPHA)
+    pygame.draw.rect(
+        gloss, (255, 255, 255, 40), gloss.get_rect(),
+        border_top_left_radius=radius - 3, border_top_right_radius=radius - 3,
+    )
+    surf.blit(gloss, (pad + 5, pad + 3))
+
+    # حاشیه نئونی و خط روشن داخلی
+    pygame.draw.rect(surf, edge, base, width=2, border_radius=radius)
+    pygame.draw.rect(surf, (255, 255, 255, 55), base.inflate(-7, -7), width=1,
+                     border_radius=max(2, radius - 4))
+
+    # متن و آیکون
+    font = BTN_FONT_LARGE if h >= 52 else BTN_FONT
+    txt = font.render(label, True, text_col)
+    if txt.get_width() > w - 16:
+        font = BTN_FONT_SMALL
+        txt = font.render(label, True, text_col)
+    shadow = font.render(label, True, (0, 0, 0))
+    shadow.set_alpha(110)
+
+    icon_size = 22 if h >= 52 else 17
+    gap = 8
+    has_icon = bool(icon) and (txt.get_width() + icon_size + gap) <= (w - 20)
+    total = txt.get_width() + ((icon_size + gap) if has_icon else 0)
+    x0 = pad + (w - total) // 2
+    cy = pad + h // 2
+
+    if has_icon:
+        draw_button_icon(surf, icon, x0 + icon_size // 2, cy, icon_size, text_col, bot_c)
+        x0 += icon_size + gap
+
+    ty = cy - txt.get_height() // 2
+    surf.blit(shadow, (x0 + 1, ty + 2))
+    surf.blit(txt, (x0, ty))
+    return surf
+
+
+def button(label, rect, mouse_pos, active=False, icon=None, style="cyan"):
+    hovered = rect.collidepoint(mouse_pos)
+    pressed = hovered and pygame.mouse.get_pressed()[0]
+
+    key = (label, rect.width, rect.height, style, icon, hovered, pressed, active)
+    surf = BTN_CACHE.get(key)
+    if surf is None:
+        surf = build_button_surface(
+            label, rect.width, rect.height, style, icon, hovered, pressed, active
+        )
+        BTN_CACHE[key] = surf
+
+    offset = 0
+    if pressed:
+        offset = 2
+    elif hovered and not active:
+        offset = -2
+    SCREEN.blit(surf, (rect.x - BTN_PAD, rect.y - BTN_PAD + offset))
 
 
 def map_buttons():
@@ -369,9 +641,9 @@ MENU_LEADERBOARD_BUTTON = pygame.Rect(387, 510, 250, 56)
 BACK_BUTTON = pygame.Rect(42, 728, 185, 48)
 GAME_LEADERBOARD_BUTTON = pygame.Rect(795, 728, 187, 48)
 
-WIN_AGAIN_BUTTON = pygame.Rect(245, 515, 160, 55)
-WIN_LEADERBOARD_BUTTON = pygame.Rect(432, 515, 160, 55)
-WIN_MENU_BUTTON = pygame.Rect(619, 515, 160, 55)
+WIN_AGAIN_BUTTON = pygame.Rect(212, 515, 190, 55)
+WIN_LEADERBOARD_BUTTON = pygame.Rect(417, 515, 190, 55)
+WIN_MENU_BUTTON = pygame.Rect(622, 515, 190, 55)
 
 
 # ---------- بازی و منطق آن ----------
@@ -505,7 +777,7 @@ def flip_card(game, position):
 
 # ---------- صفحات رابط کاربری ----------
 def draw_menu(player_name, mouse_pos):
-    SCREEN.fill(BG)
+    draw_background(dim=False)
 
     text("NEON MEMORY CARDS", BIG_FONT, CYAN, center=(WIDTH // 2, 125))
     text(
@@ -530,9 +802,9 @@ def draw_menu(player_name, mouse_pos):
     text("CHOOSE YOUR MAP", FONT, WHITE, center=(WIDTH // 2, 365))
 
     for size, rect in map_buttons().items():
-        button(f"{size} x {size}", rect, mouse_pos)
+        button(f"{size} x {size}", rect, mouse_pos, icon="grid", style="cyan")
 
-    button("LEADERBOARD", MENU_LEADERBOARD_BUTTON, mouse_pos)
+    button("LEADERBOARD", MENU_LEADERBOARD_BUTTON, mouse_pos, icon="trophy", style="gold")
     text(
         "Select map size to begin.",
         SMALL_FONT,
@@ -542,7 +814,7 @@ def draw_menu(player_name, mouse_pos):
 
 
 def draw_game(game, mouse_pos):
-    SCREEN.fill(BG)
+    draw_background(dim=True)
 
     size = game["size"]
     text(f"{size} x {size}  |  {game['name']}", FONT, CYAN, topleft=(58, 35))
@@ -592,12 +864,12 @@ def draw_game(game, mouse_pos):
             pygame.draw.rect(SCREEN, PURPLE, rect, width=2, border_radius=8)
             text("?", CARD_FONT, PURPLE, center=rect.center)
 
-    button("BACK TO MENU", BACK_BUTTON, mouse_pos)
-    button("LEADERBOARD", GAME_LEADERBOARD_BUTTON, mouse_pos)
+    button("BACK TO MENU", BACK_BUTTON, mouse_pos, icon="back", style="purple")
+    button("LEADERBOARD", GAME_LEADERBOARD_BUTTON, mouse_pos, icon="trophy", style="gold")
 
 
 def draw_leaderboard(records, error, selected_size, mouse_pos):
-    SCREEN.fill(BG)
+    draw_background(dim=True)
 
     text("HALL OF FAME", BIG_FONT, CYAN, center=(WIDTH // 2, 85))
     text(
@@ -614,6 +886,8 @@ def draw_leaderboard(records, error, selected_size, mouse_pos):
             rect,
             mouse_pos,
             active=(size == selected_size),
+            icon="grid",
+            style="cyan",
         )
 
     headers = [
@@ -671,7 +945,7 @@ def draw_leaderboard(records, error, selected_size, mouse_pos):
             center=(WIDTH // 2, 706),
         )
 
-    button("BACK", BACK_BUTTON, mouse_pos)
+    button("BACK", BACK_BUTTON, mouse_pos, icon="back", style="purple")
 
 
 def draw_win(game, mouse_pos):
@@ -709,9 +983,9 @@ def draw_win(game, mouse_pos):
     else:
         text("Record saved to leaderboard!", SMALL_FONT, GREEN, center=(WIDTH // 2, 461))
 
-    button("PLAY AGAIN", WIN_AGAIN_BUTTON, mouse_pos)
-    button("LEADERBOARD", WIN_LEADERBOARD_BUTTON, mouse_pos)
-    button("MENU", WIN_MENU_BUTTON, mouse_pos)
+    button("PLAY AGAIN", WIN_AGAIN_BUTTON, mouse_pos, icon="play", style="green")
+    button("LEADERBOARD", WIN_LEADERBOARD_BUTTON, mouse_pos, icon="trophy", style="gold")
+    button("MENU", WIN_MENU_BUTTON, mouse_pos, icon="home", style="purple")
 
 
 def draw_lose(game, mouse_pos):
@@ -741,9 +1015,9 @@ def draw_lose(game, mouse_pos):
     )
     text("No record saved.", SMALL_FONT, MUTED, center=(WIDTH // 2, 461))
 
-    button("TRY AGAIN", WIN_AGAIN_BUTTON, mouse_pos)
-    button("LEADERBOARD", WIN_LEADERBOARD_BUTTON, mouse_pos)
-    button("MENU", WIN_MENU_BUTTON, mouse_pos)
+    button("TRY AGAIN", WIN_AGAIN_BUTTON, mouse_pos, icon="retry", style="red")
+    button("LEADERBOARD", WIN_LEADERBOARD_BUTTON, mouse_pos, icon="trophy", style="gold")
+    button("MENU", WIN_MENU_BUTTON, mouse_pos, icon="home", style="purple")
 
 
 # ---------- حلقه اصلی برنامه ----------
