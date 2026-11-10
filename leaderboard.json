@@ -1,0 +1,30 @@
+[
+  {
+    "name": "A",
+    "grid": "4x4",
+    "time": 26.41,
+    "moves": 15,
+    "score": 4209
+  },
+  {
+    "name": "B",
+    "grid": "4x4",
+    "time": 26.7,
+    "moves": 16,
+    "score": 4169
+  },
+  {
+    "name": "A",
+    "grid": "4x4",
+    "time": 39.92,
+    "moves": 14,
+    "score": 2867
+  },
+  {
+    "name": "A",
+    "grid": "4x4",
+    "time": 31.3,
+    "moves": 20,
+    "score": 3670
+  }
+]

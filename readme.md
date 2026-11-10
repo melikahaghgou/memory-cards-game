@@ -21,26 +21,41 @@ pip install pygame
 ## 📸 Gameplay & Interface
 
 <p align="center">
-  <img src="assets/1.png" alt="Main Menu & Player Input" width="70%" />
+  <img src="assets/1.png" alt="Main Menu" width="70%" />
 </p>
 <p align="center">
-  <em>Figure 1: Main Menu with Player Name Input & Grid Selection</em>
+  <em>Figure 1: Main Menu with Player Name Input & Multi-Grid Selection</em>
 </p>
 
 <br/>
 
 <p align="center">
-  <img src="assets/2.png" alt="In-Game Play" width="70%" />
+  <img src="assets/2.png" alt="Active Gameplay" width="70%" />
 </p>
 <p align="center">
-  <em>Figure 2: Active Gameplay with Timer, Flip Animations & Cards</em>
+  <em>Figure 2: Active Gameplay with Timer, Match Scores & Card Animations</em>
 </p>
 
 <br/>
 
 <p align="center">
-  <img src="assets/3.png" alt="Hall of Fame & Scoreboard" width="70%" />
+  <img src="assets/3.png" alt="Victory Screen" width="70%" />
 </p>
 <p align="center">
-  <em>Figure 3: Hall of Fame & Leaderboard Records</em>
+  <img src="assets/5.png" alt="Hall of Fame Scoreboard" width="70%" />
 </p>
+<p align="center">
+ <em>Figure 3: Victory & Game Over Modal Dialogs</em>
+</p>
+
+
+
+<br/>
+
+<p align="center">
+  <img src="assets/4.png" alt="Hall of Fame Scoreboard" width="70%" />
+</p>
+<p align="center">
+  <em>Figure 4: Hall of Fame / Leaderboard Records</em>
+</p>
+

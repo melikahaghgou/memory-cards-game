@@ -1,0 +1,16 @@
+[
+  {
+    "name": "B",
+    "grid": "4x4",
+    "time": 30.2,
+    "moves": 17,
+    "score": 800
+  },
+  {
+    "name": "A",
+    "grid": "4x4",
+    "time": 35.8,
+    "moves": 18,
+    "score": 800
+  }
+]
